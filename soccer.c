@@ -14,6 +14,12 @@ double vertices[][3]={//四角形
 	{110, 110, 0.0},
 	{110, 0.0, 0.0}
 };
+double cpu[][3]={//四角形
+	{0.0+800,0.0, 0.0},
+	{0.0+800,90, 0.0},
+	{90+800, 90, 0.0},
+	{90+800, 0.0, 0.0}
+};
 double outflame[][3]={//四角形
 	{-mx-rd, -my-rd, 0.0},
 	{mx+rd, -my-rd, 0.0},
@@ -55,6 +61,7 @@ void display(void)
 
 	//ここからモデリング変換
 	glLoadIdentity(); //視野変換・モデリング変換の変換行列を単位行列で初期化
+    glColor3f(0.0,1.0,1.0);
 	glBegin(GL_LINE_LOOP); //プリミティブの指定は2Dの時と同じ
 	for(int i=0; i < 4; i++)
 		glVertex3dv(outflame[i]); //2dではなく3d
@@ -79,7 +86,6 @@ void display(void)
 	glRotated(ry, 0.0, 1.0, 0.0); //Y軸回転
 	glRotated(rz, 0.0, 0.0, 1.0); //Z軸回転
 	//ここからモデリング座標系
-	glColor3f(0.0, 1.0, 1.0);
 	glBegin(GL_LINE_LOOP); //プリミティブの指定は2Dの時と同じ
 	glutWireSphere(rd-10,50,50);
     glEnd();
@@ -91,11 +97,20 @@ void display(void)
 		glVertex3dv(vertices[i]); //2dではなく3d
 //	glutWireSphere(rd+15,tx+55,ty+55);
 	glEnd();
+    glColor3f(0.7,0.2,0.4);
+	//glTranslated(-tx, -ty,- tz); //平行移動
+	glTranslated(-rox,-roy,-tz);  //平行移動
+    glTranslated(0.0,(ty-45)+45%10,0.0);
+	glBegin(GL_LINE_LOOP); //プリミティブの指定は2Dの時と同じ
+	for(int i=0; i < 4; i++)
+		glVertex3dv(cpu[i]); //2dではなく3d
+//	glutWireSphere(rd+15,tx+55,ty+55);
+	glEnd();
 	glFlush();
 
     ysve -=0;
     ysb -=0;
-        if(flg<=0&&sqrt((ty-55-roy)*(ty-55-roy)+(tx-55-rox)*(tx-55-rox)) <= 75){
+        if(flg<=0&&sqrt((ty-55-roy)*(ty-55-roy)+(tx-55-rox)*(tx-55-rox)) <= 90){
            xsve =-1* ((xsve+xsb/3)*2+0.0);
            ysve =-1* (ysve+ysb/3)*2+(flg%9);
            xsb = -1 * xsve/3;
@@ -165,7 +180,7 @@ void keyboard(unsigned char key, int x, int y)
 {
 	switch (key) {
         case'u':
-            xsve=-50;
+            xsve=50;
             ysve=-50;
         case'j':
             ty=0;
