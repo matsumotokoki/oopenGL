@@ -1,13 +1,16 @@
 #include<GL/glut.h>
 #include<stdio.h>
 #include<math.h>
+#include<time.h>
+#include<stdlib.h>
 #define rd 40.0
 #define mx 1000.0
 #define my 600.0
-#define m_box 500 //グラム
+#define m_box 50 //グラムi
+#define m_sphere 5
 
-double xsve,ysve,xsb,ysb=0;
-double xsve=9.8;
+float xsve,ysve,xsb,ysb=0,cpu_x=0,cpu_y,wall=0;
+float xsve=9.8;
 double vertices[][3]={//四角形
 	{0.0, 0.0, 0.0},
 	{0.0, 110, 0.0},
@@ -27,16 +30,16 @@ double outflame[][3]={//四角形
 	{-mx-rd,my+rd, 0.0}
 };
 double L_goleline[][3]={//ペナルティエリア(L)
-    {-mx-rd,-my+50,0.0},
-    {-mx-rd,my-50,0.0},
-    {-mx+50,my-50,0.0},
-    {-mx+50,-my+50,0.0}
+    {-1000-40,-300,0.0},
+    {-950,-300,0.0},
+    {-950,300,0.0},
+    {-1000-40,300,0.0}
 };
 double R_goleline[][3]={//  //   (R)
-    {mx+rd,-my+50,0.0},
-    {mx+rd,my-50,0.0},
-    {mx-50,my-50,0.0},
-    {mx-50,-my+50,0.0}
+    {1000+40,300,0.0},
+    {950,300,0.0},
+    {950,-300,0.0},
+    {1000+40,-300,0.0}
 };
 double centerline[][3]={//センターライン
     {0,my+rd,0.0},
@@ -44,23 +47,37 @@ double centerline[][3]={//センターライン
     {mx+rd,-my-rd,0.0},
     {mx+rd,my+rd,0.0}
 };
+double wall_z[][3]={//四角形
+	{-770-45, -600-44, 0.0},
+	{-760-45, -600-44, 0.0},
+	{-760-45, 600+44, 0.0},
+	{-770-45, 600+44, 0.0}
+};
 
 int flg=0;
-double tx = 0.0;
-double ty = 0.0;
-double tz = 0.0;
-double rx = 0.0;
-double ry = 0.0;
-double rz = 0.0;
+int c_flg=0;
+float tx = 0.0;
+float ty = 0.0;
+float tz = 0.0;
+float rx = 0.0;
+float ry = 0.0;
+float rz = 0.0;
 
-double rox = 0.0; //移動量
-double roy = 0.0; //移動量
+float rox = 0.0; //移動量
+float roy = 0.0; //移動量
 void display(void)
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
 	//ここからモデリング変換
 	glLoadIdentity(); //視野変換・モデリング変換の変換行列を単位行列で初期化
+    glColor3f(1.0,0.0,0.0);
+    glBegin(GL_POLYGON);
+    if(wall){
+    for(int i=0; i < 4; i++)
+		glVertex3dv(wall_z[i]);
+    }
+    glEnd();
     glColor3f(0.0,1.0,1.0);
 	glBegin(GL_LINE_LOOP); //プリミティブの指定は2Dの時と同じ
 	for(int i=0; i < 4; i++)
@@ -85,11 +102,12 @@ void display(void)
 	glRotated(rx, 1.0, 0.0, 0.0); //X軸回転
 	glRotated(ry, 0.0, 1.0, 0.0); //Y軸回転
 	glRotated(rz, 0.0, 0.0, 1.0); //Z軸回転
-	//ここからモデリング座標系
+	//ここからモデリング座標系i
+    glColor3f(0.5,0.0,1.0);
 	glBegin(GL_LINE_LOOP); //プリミティブの指定は2Dの時と同じ
 	glutWireSphere(rd-10,50,50);
     glEnd();
-
+    glColor3f(0.3,0.8,0.6);
 	glTranslated(-tx, -ty,- tz); //平行移動
 	glTranslated(rox, roy, tz);  //平行移動
 	glBegin(GL_LINE_LOOP); //プリミティブの指定は2Dの時と同じ
@@ -100,7 +118,7 @@ void display(void)
     glColor3f(0.7,0.2,0.4);
 	//glTranslated(-tx, -ty,- tz); //平行移動
 	glTranslated(-rox,-roy,-tz);  //平行移動
-    glTranslated(0.0,(ty-45)+45%10,0.0);
+    glTranslated(cpu_x,cpu_y-45,0.0);
 	glBegin(GL_LINE_LOOP); //プリミティブの指定は2Dの時と同じ
 	for(int i=0; i < 4; i++)
 		glVertex3dv(cpu[i]); //2dではなく3d
@@ -110,20 +128,36 @@ void display(void)
 
     ysve -=0;
     ysb -=0;
-        if(flg<=0&&sqrt((ty-55-roy)*(ty-55-roy)+(tx-55-rox)*(tx-55-rox)) <= 90){
-           xsve =-1* ((xsve+xsb/3)*2+0.0);
-           ysve =-1* (ysve+ysb/3)*2+(flg%9);
-           xsb = -1 * xsve/3;
-           ysb = -1 * ysve/3;
+        if(flg<=0&&sqrt((ty-55-roy)*(ty-55-roy)+(tx-55-rox)*(tx-55-rox)) <= 110){
+           xsve = (xsve*m_sphere/9+xsb*m_box*9/10)*0.1;
+           ysve = (ysve*m_sphere/9+ysb*m_box*9/10)*0.1;
+           xsb = -1 * xsve/10;
+           ysb = -1 * ysve/10;
            flg=10;
         }else{
             flg--;}
+        if(flg<=0&&sqrt((ty-cpu_y-45)*(ty-cpu_y-45)+(tx-845)*(tx-845)) <= 90){
+           
+           xsve = -1.1*xsve;
+           ysve = 1.1*ysve;
+           //xsb = -1 * xsve/3;
+           //ysb = -1 * ysve/3;
+           c_flg=10;
+        }else{
+           c_flg--;}
+    if(cpu_y>=-700&&cpu_y<=700){
+           if(cpu_y!=ty+45&&cpu_y+45>ty) cpu_y-=20;
+           if(cpu_y!=ty+45&&cpu_y+45<=ty)cpu_y+=20;
+    }
 /********/
     if(tx>=1000&&xsve>=0){
         xsve = -1*xsve*0.4;
     }
+    if(wall==1&&tx<=-750-10&&xsve<=0){
+        xsve=-1*xsve*0.75;
+    }
     else if(tx<=-1000-10&&xsve<=0){
-        xsve = -1*xsve*0.7;
+        xsve = -1*xsve*0.4;
     }
     if(ty>=600&&ysve>=0){
         ysve = -1*ysve*0.7;
@@ -141,30 +175,42 @@ void display(void)
 
 /********/
     if(rox>=1000-75&&xsb>=0){
-        xsb = -1*xsb*0.5;
+        xsb = -1*xsb*0.3;
     }
     else if(rox<=-1000-35&&xsb<=0){
-        xsb = -1*xsb*0.5;
+        xsb = -1*xsb*0.3;
     }
     if(roy>=600-70&&ysb>=0){
-        ysb = -1*ysb*0.7;
+        ysb = -1*ysb*0.3;
     }else if(roy<=-600-40&&ysb<=0){
-        ysb = -1*ysb*0.7;
+        ysb = -1*ysb*0.3;
         if(ysb >=-0.003&&ysb<=0.003){
         }
     }
     if(roy<=-600&&ysb>=-0.0072&&ysb<=0.0072){
-        ysve *=0.7;}
+        ysve *=0.3;}
     if(roy<=-600&&ysb>=-0.0002&&ysb<=0.0002){
            // ysb =0;
     }
 /********/
-
+        
         tx +=xsve; 
         ty +=ysve;
         rox +=xsb;
         roy +=ysb;
-
+    if(tx>=950&&ty<=300&&ty>=-300){
+        ty=0;
+        tx=0;
+        xsve=-1;
+        ysve=-1;
+    }
+    if(tx<=-950&&ty<=300&&ty>=-300){
+        ty=0;
+        tx=0;
+        xsve=1;
+        ysve=1;
+    }
+    
 	glutPostRedisplay();
 }
 void resize(int w, int h) 
@@ -179,9 +225,17 @@ void resize(int w, int h)
 void keyboard(unsigned char key, int x, int y)
 {
 	switch (key) {
+        case'b':
+            ty=-600;
+            tx=0;
+            break;
+        case't':
+            ty=600;
+            tx=0;
+            break;
         case'u':
-            xsve=50;
-            ysve=-50;
+            xsve=10;
+            ysve=10;
         case'j':
             ty=0;
             tx=0;
@@ -189,17 +243,26 @@ void keyboard(unsigned char key, int x, int y)
         case '\033':
             exit(0);
 		case'a':
-			xsb  -= 1.001;
+            if(xsb>=-20)
+			xsb  -= 1.5;
 		break;
 		case'd':
-			xsb  += 1.001;
+            if(xsb<=20)
+			xsb  += 1.5;
 		break;
 		case 's':
-			ysb -= 1.001;
+            if(ysb>=-20)
+			ysb -= 1.5;
 		break;
 		case 'w':
-			ysb += 1.001;
+            if(ysb<=20)
+			ysb += 1.5;
 		break;
+        case'q':
+        if(wall==0)
+        wall=1;
+        else wall=0;
+        break;
 		default:
 		break;
 	}
@@ -207,7 +270,7 @@ void keyboard(unsigned char key, int x, int y)
 }
 int main(int argc, char *argv[])
 {
-	glutInit(&argc, argv);
+    glutInit(&argc, argv);
 	glutInitWindowPosition(0, 0); //ウインドウを表示する画面上の左上の位置
 	glutInitWindowSize(1200, 800); //ウインドウのサイズ
 	glutInitDisplayMode(GLUT_RGBA);
