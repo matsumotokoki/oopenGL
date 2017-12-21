@@ -12,10 +12,10 @@
 float xsve,ysve,xsb,ysb=0,cpu_x=0,cpu_y,wall=0;
 float xsve=9.8;
 double vertices[][3]={//四角形
-	{0.0, 0.0, 0.0},
-	{0.0, 110, 0.0},
-	{110, 110, 0.0},
-	{110, 0.0, 0.0}
+	{0.0-200, 0.0, 0.0},
+	{0.0-200, 110, 0.0},
+	{110-200, 110, 0.0},
+	{110-200, 0.0, 0.0}
 };
 double cpu[][3]={//四角形
 	{0.0+800,0.0, 0.0},
@@ -48,10 +48,10 @@ double centerline[][3]={//センターライン
     {mx+rd,my+rd,0.0}
 };
 double wall_z[][3]={//四角形
-	{-770-45, -600-44, 0.0},
+	{-790-45, -600-44, 0.0},
 	{-760-45, -600-44, 0.0},
 	{-760-45, 600+44, 0.0},
-	{-770-45, 600+44, 0.0}
+	{-790-45, 600+44, 0.0}
 };
 
 int flg=0;
@@ -103,11 +103,11 @@ void display(void)
 	glRotated(ry, 0.0, 1.0, 0.0); //Y軸回転
 	glRotated(rz, 0.0, 0.0, 1.0); //Z軸回転
 	//ここからモデリング座標系i
-    glColor3f(0.5,0.0,1.0);
+    glColor3f(1.0,1.0,1.0);
 	glBegin(GL_LINE_LOOP); //プリミティブの指定は2Dの時と同じ
 	glutWireSphere(rd-10,50,50);
     glEnd();
-    glColor3f(0.3,0.8,0.6);
+    glColor3f(0.0,1.0,0.6);
 	glTranslated(-tx, -ty,- tz); //平行移動
 	glTranslated(rox, roy, tz);  //平行移動
 	glBegin(GL_LINE_LOOP); //プリミティブの指定は2Dの時と同じ
@@ -128,26 +128,32 @@ void display(void)
 
     ysve -=0;
     ysb -=0;
-        if(flg<=0&&sqrt((ty-55-roy)*(ty-55-roy)+(tx-55-rox)*(tx-55-rox)) <= 110){
-           xsve = (xsve*m_sphere/9+xsb*m_box*9/10)*0.1;
-           ysve = (ysve*m_sphere/9+ysb*m_box*9/10)*0.1;
-           xsb = -1 * xsve/10;
-           ysb = -1 * ysve/10;
+        if(flg<=0&&sqrt((ty-55-roy)*(ty-55-roy)+(tx-55-rox+200)*(tx-55-rox+200)) <= 100){
+           if(xsb<=0&&xsve<=0&&xsb>=xsve) 
+           xsve = -1*(xsve*m_sphere+xsb*m_box)*1/100;
+           else
+           xsve = (xsve*m_sphere+xsb*m_box)*1/10;
+           if(ysb<=0&&ysve<=0&&ysve>=ysb)
+           ysve = -1*(ysve*m_sphere+ysb*m_box)*1/100;
+           else    
+           ysve = (ysve*m_sphere+ysb*m_box)*1/10;
+           xsb =  -1*xsve/10;
+           ysb =  -1*ysve/10;
            flg=10;
         }else{
             flg--;}
-        if(flg<=0&&sqrt((ty-cpu_y-45)*(ty-cpu_y-45)+(tx-845)*(tx-845)) <= 90){
+        if(flg<=0&&sqrt((ty-cpu_y-45)*(ty-cpu_y-45)+(tx-845)*(tx-845)) <= 95){
            
-           xsve = -1.1*xsve;
-           ysve = 1.1*ysve;
+           xsve = -1.5*xsve-3;
+           ysve = 1.7*ysve;
            //xsb = -1 * xsve/3;
            //ysb = -1 * ysve/3;
            c_flg=10;
         }else{
            c_flg--;}
     if(cpu_y>=-700&&cpu_y<=700){
-           if(cpu_y!=ty+45&&cpu_y+45>ty) cpu_y-=20;
-           if(cpu_y!=ty+45&&cpu_y+45<=ty)cpu_y+=20;
+           if(cpu_y!=ty+45&&cpu_y+45>ty) cpu_y-=10;
+           if(cpu_y!=ty+45&&cpu_y+45<=ty)cpu_y+=10;
     }
 /********/
     if(tx>=1000&&xsve>=0){
@@ -174,16 +180,16 @@ void display(void)
 /********/
 
 /********/
-    if(rox>=1000-75&&xsb>=0){
-        xsb = -1*xsb*0.3;
+    if(rox>=1000-75+200&&xsb>=0){
+        xsb = -1*xsb*0.2;
     }
-    else if(rox<=-1000-35&&xsb<=0){
-        xsb = -1*xsb*0.3;
+    else if(rox<=-1000-35+200&&xsb<=0){
+        xsb = -1*xsb*0.2;
     }
     if(roy>=600-70&&ysb>=0){
-        ysb = -1*ysb*0.3;
+        ysb = -1*ysb*0.2;
     }else if(roy<=-600-40&&ysb<=0){
-        ysb = -1*ysb*0.3;
+        ysb = -1*ysb*0.2;
         if(ysb >=-0.003&&ysb<=0.003){
         }
     }
@@ -193,23 +199,34 @@ void display(void)
            // ysb =0;
     }
 /********/
-        
+       if(xsve>=20)xsve=20;
+       if(ysve>=20)ysve=20;
         tx +=xsve; 
         ty +=ysve;
         rox +=xsb;
         roy +=ysb;
     if(tx>=950&&ty<=300&&ty>=-300){
+        flg=500;
+        while(flg){
+            flg--;
+        }
         ty=0;
         tx=0;
-        xsve=-1;
-        ysve=-1;
+        xsve=-3;
+        ysve=-3;
     }
     if(tx<=-950&&ty<=300&&ty>=-300){
+        flg=500;
+        while(flg){
+            flg--;
+        }
         ty=0;
         tx=0;
-        xsve=1;
-        ysve=1;
+        xsve=3;
+        ysve=3;
     }
+    xsve*=0.9999;
+    ysve*=0.9999;
     
 	glutPostRedisplay();
 }
@@ -225,6 +242,12 @@ void resize(int w, int h)
 void keyboard(unsigned char key, int x, int y)
 {
 	switch (key) {
+        case'k':
+            tx=0;
+            ty=0;
+            xsve=0;
+            ysve=0;
+            break;
         case'b':
             ty=-600;
             tx=0;
@@ -236,6 +259,7 @@ void keyboard(unsigned char key, int x, int y)
         case'u':
             xsve=10;
             ysve=10;
+            break;
         case'j':
             ty=0;
             tx=0;
@@ -244,19 +268,19 @@ void keyboard(unsigned char key, int x, int y)
             exit(0);
 		case'a':
             if(xsb>=-20)
-			xsb  -= 1.5;
+			xsb  -= 3;
 		break;
 		case'd':
             if(xsb<=20)
-			xsb  += 1.5;
+			xsb  += 3;
 		break;
 		case 's':
             if(ysb>=-20)
-			ysb -= 1.5;
+			ysb -= 3;
 		break;
 		case 'w':
             if(ysb<=20)
-			ysb += 1.5;
+			ysb += 3;
 		break;
         case'q':
         if(wall==0)
@@ -272,7 +296,7 @@ int main(int argc, char *argv[])
 {
     glutInit(&argc, argv);
 	glutInitWindowPosition(0, 0); //ウインドウを表示する画面上の左上の位置
-	glutInitWindowSize(1200, 800); //ウインドウのサイズ
+	glutInitWindowSize(3000, 2000); //ウインドウのサイズ
 	glutInitDisplayMode(GLUT_RGBA);
 	glutCreateWindow(argv[0]);
 	glutDisplayFunc(display);
