@@ -225,8 +225,8 @@ void display(void)
         xsve=3;
         ysve=3;
     }
-    xsve*=0.9999;
-    ysve*=0.9999;
+    xsve*=0.99;
+    ysve*=0.99;
     
 	glutPostRedisplay();
 }
@@ -267,19 +267,27 @@ void keyboard(unsigned char key, int x, int y)
         case '\033':
             exit(0);
 		case'a':
-            if(xsb>=-20)
+            if(xsb>=10)
+            xsb  -= 8;
+            else if(xsb>=-15)
 			xsb  -= 3;
 		break;
 		case'd':
-            if(xsb<=20)
+            if(xsb<=-10)
+            xsb += 8;
+            else if(xsb<=15)
 			xsb  += 3;
 		break;
 		case 's':
-            if(ysb>=-20)
+            if(ysb>=10)
+            ysb -= 8;
+            else if(ysb>=-15)
 			ysb -= 3;
 		break;
 		case 'w':
-            if(ysb<=20)
+            if(ysb<=-10)
+            ysb += 8;
+            else if(ysb<=15)
 			ysb += 3;
 		break;
         case'q':
@@ -303,6 +311,6 @@ int main(int argc, char *argv[])
 	glutReshapeFunc(resize); //関数resizeをコールバックに設定
 	glutKeyboardFunc(keyboard);
    	glClearColor(0.0, 0.0, 0.0, 0.0);
-        glutMainLoop();
+    glutMainLoop();
     return 0;
 }
